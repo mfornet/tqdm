@@ -33,6 +33,18 @@ __all__ = ['tqdm', 'trange',
            'TqdmMonitorWarning']
 
 
+class TqdmLogger:
+    message = None
+
+    @classmethod
+    def log(cls, message):
+        cls.message = str(message)
+
+    @classmethod
+    def clear(cls):
+        cls.message = None
+
+
 class TqdmTypeError(TypeError):
     pass
 
@@ -258,6 +270,9 @@ class tqdm(Comparable):
         -------
         out  : Formatted meter and stats, ready to display.
         """
+
+        if TqdmLogger.message is not None:
+            prefix = TqdmLogger.message + ' #' + prefix
 
         # sanity check: total
         if total and n > total:

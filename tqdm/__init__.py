@@ -1,4 +1,4 @@
-from ._tqdm import tqdm
+from ._tqdm import tqdm, TqdmLogger
 from ._tqdm import trange
 from ._tqdm_gui import tqdm_gui
 from ._tqdm_gui import tgrange
@@ -10,7 +10,7 @@ from ._tqdm import TqdmTypeError, TqdmKeyError, TqdmWarning, \
     TqdmDeprecationWarning, TqdmExperimentalWarning, \
     TqdmMonitorWarning
 
-__all__ = ['tqdm', 'tqdm_gui', 'trange', 'tgrange', 'tqdm_pandas',
+__all__ = ['tqdm', 'TqdmLogger', 'tqdm_gui', 'trange', 'tgrange', 'tqdm_pandas',
            'tqdm_notebook', 'tnrange', 'main', 'TMonitor',
            'TqdmTypeError', 'TqdmKeyError',
            'TqdmWarning', 'TqdmDeprecationWarning',
