@@ -3,7 +3,7 @@ IPython/Jupyter Notebook progressbar decorator for iterators.
 Includes a default (x)range iterator printing to stderr.
 
 Usage:
-  >>> from tqdm_notebook import tnrange[, tqdm_notebook]
+  >>> from tqdm import tnrange[, tqdm_notebook]
   >>> for i in tnrange(10): #same as: for i in tqdm_notebook(xrange(10))
   ...     ...
 """
@@ -19,9 +19,15 @@ from ._tqdm import tqdm
 
 if True:  # pragma: no cover
     # import IPython/Jupyter base widget and display utilities
+    IPY = 0
+    IPYW = 0
     try:  # IPython 4.x
         import ipywidgets
         IPY = 4
+        try:
+            IPYW = int(ipywidgets.__version__.split('.')[0])
+        except AttributeError:  # __version__ may not exist in old versions
+            pass
     except ImportError:  # IPython 3.x / 2.x
         IPY = 32
         import warnings
@@ -102,12 +108,14 @@ class tqdm_notebook(tqdm):
         except NameError:
             # #187 #451 #558
             raise ImportError(
-                "IntProgress not found. Please update juputer and ipywidgets."
+                "IntProgress not found. Please update jupyter and ipywidgets."
                 " See https://ipywidgets.readthedocs.io/en/stable"
                 "/user_install.html")
 
         if desc:
             pbar.description = desc
+            if IPYW >= 7:
+                pbar.style.description_width = 'initial'
         # Prepare status text
         ptext = HTML()
         # Only way to place text to the right of the bar is to use a container
@@ -116,9 +124,11 @@ class tqdm_notebook(tqdm):
         if ncols is not None:  # use default style of ipywidgets
             # ncols could be 100, "100px", "100%"
             ncols = str(ncols)  # ipywidgets only accepts string
-            if ncols[-1].isnumeric():
-                # if last value is digit, assume the value is digit
-                ncols += 'px'
+            try:
+                if int(ncols) > 0:  # isnumeric and positive
+                    ncols += 'px'
+            except ValueError:
+                pass
             pbar.layout.flex = '2'
             container.layout.width = ncols
             container.layout.display = 'inline-flex'
@@ -140,7 +150,7 @@ class tqdm_notebook(tqdm):
                     npos = s.find(r'/|/')  # cause we use bar_format=r'{n}|...'
                     # Check that n can be found in s (else n > total)
                     if npos >= 0:
-                        n = int(s[:npos])  # get n from string
+                        n = float(s[:npos])  # get n from string
                         s = s[npos + 3:]  # remove from string
 
                         # Update bar with current n value
@@ -170,6 +180,8 @@ class tqdm_notebook(tqdm):
             # Update description
             if desc:
                 pbar.description = desc
+                if IPYW >= 7:
+                    pbar.style.description_width = 'initial'
 
         return print_status
 
@@ -196,8 +208,10 @@ class tqdm_notebook(tqdm):
         self.ncols = '100%' if self.dynamic_ncols else kwargs.get("ncols", None)
 
         # Replace with IPython progress bar display (with correct total)
+        unit_scale = 1 if self.unit_scale is True else self.unit_scale or 1
+        total = self.total * unit_scale if self.total else self.total
         self.sp = self.status_printer(
-            self.fp, self.total, self.desc, self.ncols)
+            self.fp, total, self.desc, self.ncols)
         self.desc = None  # trick to place description before the bar
 
         # Print initial bar state
