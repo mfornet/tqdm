@@ -1,6 +1,3 @@
-import sys
-sys.path = ["tqdm-github"] + sys.path
-
 from tqdm import tqdm, TqdmLogger as logger
 
 s = 0
